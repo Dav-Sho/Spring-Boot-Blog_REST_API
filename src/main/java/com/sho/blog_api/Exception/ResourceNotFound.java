@@ -1,5 +1,8 @@
 package com.sho.blog_api.Exception;
 
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus
 public class ResourceNotFound extends RuntimeException{
     private String resourceName;
     private String fieldName;
