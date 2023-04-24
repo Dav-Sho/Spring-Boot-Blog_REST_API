@@ -1,5 +1,6 @@
 package com.sho.blog_api.Controller;
 
+import com.sho.blog_api.Dtos.JwtAuthResponse;
 import com.sho.blog_api.Dtos.LoginDto;
 import com.sho.blog_api.Dtos.RegisterDto;
 import com.sho.blog_api.Service.AuthService;
@@ -18,9 +19,12 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<String> login(@RequestBody LoginDto loginDto) {
-        String response = authService.login(loginDto);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginDto loginDto) {
+        String token = authService.login(loginDto);
+        System.out.println("my token is " + token);
+        JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
+        jwtAuthResponse.setAccessToken(token);
+        return  ResponseEntity.ok(jwtAuthResponse);
     }
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterDto registerDto) {
