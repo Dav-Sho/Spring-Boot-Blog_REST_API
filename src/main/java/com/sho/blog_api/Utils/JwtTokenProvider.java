@@ -14,51 +14,64 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
+
     @Value("${app.jwt-secret}")
-    private String jwtSecrete;
+    private String jwtSecret;
+
     @Value("${app.jwt-expiration}")
-    private String jwtExpirationDate;
+    private long jwtExpirationDate;
 
-    public String generateToken(Authentication authentication) {
+    // generate JWT token
+    public String generateToken(Authentication authentication){
         String username = authentication.getName();
-        Date currentDate = new Date();
-        Date expirationDate = new Date(currentDate.getTime() + jwtExpirationDate);
 
-//        let generate JwtToken
-        String token = Jwts.builder().setSubject(username).setIssuedAt(new Date())
-                .setExpiration(expirationDate)
+        Date currentDate = new Date();
+
+        Date expireDate = new Date(currentDate.getTime() + jwtExpirationDate);
+
+        String token = Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(expireDate)
                 .signWith(key())
                 .compact();
         return token;
-
     }
 
-    private Key key() {
+    private Key key(){
         return Keys.hmacShaKeyFor(
-                Decoders.BASE64.decode(jwtSecrete)
+                Decoders.BASE64.decode(jwtSecret)
         );
     }
 
-//    get user name from jwt token
-    public String getUsername(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(token).getBody();
+    // get username from Jwt token
+    public String getUsername(String token){
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
         String username = claims.getSubject();
         return username;
     }
 
-//    validate jwt token
-    public boolean validate(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(key()).build().parse(token);
+    // validate Jwt token
+    public boolean validateToken(String token){
+        try{
+            Jwts.parserBuilder()
+                    .setSigningKey(key())
+                    .build()
+                    .parse(token);
             return true;
-        }catch (MalformedJwtException ex){
-            throw new BlogApiException(HttpStatus.BAD_REQUEST, "Invalid Jwt Token");
-        }catch (ExpiredJwtException ex) {
-            throw new BlogApiException(HttpStatus.BAD_REQUEST, "Expired Jwt Token");
-        }catch (UnsupportedJwtException ex){
-            throw new BlogApiException(HttpStatus.BAD_REQUEST, "Unsupported Jwt Token");
-        }catch (IllegalArgumentException ex) {
-            throw new BlogApiException(HttpStatus.BAD_REQUEST, "Jwt claims string is empty");
+        } catch (MalformedJwtException ex) {
+            throw new BlogApiException(HttpStatus.BAD_REQUEST, "Invalid JWT token");
+        } catch (ExpiredJwtException ex) {
+            throw new BlogApiException(HttpStatus.BAD_REQUEST, "Expired JWT token");
+        } catch (UnsupportedJwtException ex) {
+            throw new BlogApiException(HttpStatus.BAD_REQUEST, "Unsupported JWT token");
+        } catch (IllegalArgumentException ex) {
+            throw new BlogApiException(HttpStatus.BAD_REQUEST, "JWT claims string is empty.");
         }
     }
 }
+
